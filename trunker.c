@@ -69,34 +69,47 @@ void init_signals(){
 }
 
 int main(int argc, (char *) argv[]) {
-	unsigned short port = atoi(argv[1]);
-	int handle;
+	unsigned short inport = atoi(argv[1]);
+	unsigned short outport = atoi(argv[2]);
+	int insocket, outsocket;
 
 	init_signals();
 
 	if (argc != _ARGN) usage();
 
-	if ( (handle = socket( AF_INET, SOCK_DGRAM, IPROTO_UDP) ) < 0 )
+
+	//-------------Configuring in socket--------------------
+	
+	if ( (insocket = socket( AF_INET, SOCK_DGRAM, IPROTO_UDP) ) < 0 )
 	{
 		perror("Socket");
-		print_error("failed to create socket" );
+		print_error("failed to create in socket" );
 		return false;
 	}
 
 	sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons( (unsigned short) port );
-
-	if ( bind( handle, (const sockaddr*) &address, sizeof(sockaddr_in) ) < 0 )
+	address.sin_port = htons( (unsigned short) inport );
+	
+	if ( bind( insocket, (const sockaddr*) &address, sizeof(sockaddr_in) ) < 0 )
 	{
 		perror("Binding");
 		print_error("Failed to bind socket");
 		return false;
 	}
 
-	//Not setting the socket to a non-blocking, it's useless to our purpose...
-	
+
+	/ -------------Configuring out socket--------------------
+
+	if ( (outsocket = socket( AF_INET, SOCK_DGRAM, IPROTO_UDP) ) < 0 )
+	{
+		perror("Socket");
+		print_error("failed to create out socket" );
+		return false;
+	}
+
+
 	//Receiving packets:
 
 	while(true)
@@ -108,13 +121,14 @@ int main(int argc, (char *) argv[]) {
 		socklen_t fromLength = sizeof( from);
 
 		int bytes = recvfrom( socket, (char*)packet_data, max_packet_size, 0, (sockaddr*)&from, &fromLength );
+		// Packet received here, reseting alarm
+		alarm(TIMEOUT);
+		
+		//Once data is received, we must re-send it to the internal port
 
-		//if (bytes <= 0) break;
-
+	
 		unsigned int from_address = ntohl( from.sin_addr.s_addr );
 		unsigned int from_port = ntohs( from.sin_port );
-
-		//Packet received
 
 	}
 
