@@ -16,6 +16,7 @@
 // DEFINES
 #define ARGN 3		//Arguments requiered by program
 #define TIMEOUT 300	//300 seconds => 5 minutes.
+#define BUFFSIZE 512*1024	//Found in streamer.c in PS source code. Yet to determinate if right
 
 char* NODE_IP;	//Node's clommunity IP(already in binary mode).
 
